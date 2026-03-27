@@ -1,4 +1,5 @@
 import tkinter as tk
+import uuid
 from tkinter import ttk
 from cg_grpc import *
 import json
@@ -69,3 +70,7 @@ class MainWindow(ttk.Frame):
                 self.add_tab(guid, updateDict[guid]["furnaceLabel"], FurnacePage)
                 self.tabs[guid].gRPCupdate(updateDict[guid])
                 self.pages[guid].gRPCupdate(updateDict[guid])
+
+    def add_test_tab(self, label):
+        guid = uuid.uuid4()
+        self.add_tab(guid, label, FurnacePage)

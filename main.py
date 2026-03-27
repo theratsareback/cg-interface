@@ -2,7 +2,6 @@ import tkinter as tk
 import time
 from tkinter import ttk
 import views
-import services
 
 from cg_grpc import *
 
@@ -10,7 +9,7 @@ from cg_grpc import *
 class App(tk.Tk):
     def __init__(self):
         super().__init__()
-
+        self.gRPCClient = None
         self.title("Isomet CG Interface")
         self.geometry("1920x1080")
         self._configure_styles()
@@ -18,11 +17,17 @@ class App(tk.Tk):
         self.main = views.MainWindow(self, style="TabBar.TFrame")
         self.main.pack(fill="both", expand=True, padx=10, pady=10)
 
-        self.client = FurnaceGrpcClient(
+        self.main.add_test_tab("Test Furnace 1")
+        self.main.add_test_tab("Test Furnace 2")
+        self.main.add_test_tab("Test Furnace 3")
+
+        """
+        self.gRPCClient = FurnaceGrpcClient(
             "192.168.168.103:5000",
             on_frame_received=self.on_frame_received,
         )
-        self.client.start()
+        self.gRPCClient.start()
+        """
 
         self.protocol("WM_DELETE_WINDOW", self.on_close)
 
@@ -33,7 +38,8 @@ class App(tk.Tk):
         self.main.gRPCupdate(frame)
 
     def on_close(self) -> None:
-        self.client.close()
+        if self.gRPCClient is not None:
+            self.gRPCClient.close()
         self.destroy()
 
     def _configure_styles(self):
@@ -42,14 +48,14 @@ class App(tk.Tk):
 
         style.configure(
             "TabButton.TFrame",
-            background="#ffffff",
+            background="#d9d9d9",
             relief="flat",
             borderwidth=1
         )
         style.map(
             "TabButton.TFrame",
             background=[
-                ("selected", "#d9d9d9"),
+                ("selected", "#ffffff"),
                 ("pressed", "#cfcfcf"),
                 ("active", "#e6e6e6"),
             ]
@@ -64,12 +70,12 @@ class App(tk.Tk):
 
         style.configure(
             "TabButton.TLabel",
-            background="#ffffff"
+            background="#d9d9d9"
         )
         style.map(
             "TabButton.TLabel",
             background=[
-                ("selected", "#d9d9d9"),
+                ("selected", "#ffffff"),
                 ("pressed", "#cfcfcf"),
                 ("active", "#e6e6e6"),
             ]
