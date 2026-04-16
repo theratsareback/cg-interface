@@ -21,7 +21,12 @@ class FurnacePage(ttk.Frame):
         self.camera_view.pack(pady=10)
 
         # Graph
-        bg_color = self.winfo_toplevel().cget("background")
+        color = self.winfo_toplevel().cget("background")
+        if color == "SystemButtonFace":
+            rgb = self.winfo_rgb(color)
+            bg_color = tuple(x / 65535 for x in rgb)
+        else:
+            bg_color = color
 
         self.fig = Figure(figsize=(4, 4), dpi=100, facecolor=bg_color)
         self.ax = self.fig.add_subplot(111)
