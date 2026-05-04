@@ -36,9 +36,8 @@ class MainWindow(ctk.CTkFrame):
             text=name,
             command=lambda g=guid: self.show_tab(g)
         )
-        tab.pack(pady=(5, 5), padx=10, fill="x")
+        tab.pack(pady=(2, 2), padx=10, fill="x")
 
-        # Create page
         page = page_class(guid, self.page_container)
         page.grid(row=0, column=0, sticky="nsew")
 
@@ -48,6 +47,8 @@ class MainWindow(ctk.CTkFrame):
         # Show first tab
         if self.current is None:
             self.show_tab(guid)
+        else:
+            self.pages[self.current].lift()
 
     def show_tab(self, guid):
         if self.current == guid:
