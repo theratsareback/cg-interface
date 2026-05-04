@@ -107,6 +107,42 @@ class FurnacePage(ctk.CTkFrame):
         )
         self.dc_trim.grid(row=5, column=1, padx=15, pady=5, sticky="nw")
 
+        # Pull Speed
+        self.pull_speed_label = ctk.CTkLabel(
+            self.left_panel,
+            text="Pull Speed:",
+            font=("Arial", 18),
+            text_color="white",
+            justify="left",
+        )
+        self.pull_speed_label.grid(row=6, column=0, padx=15, pady=5, sticky="nw")
+
+        self.pull_speed = ctk.CTkEntry(
+            self.left_panel,
+            font=("Arial", 18),
+            text_color="white",
+            justify="left",
+        )
+        self.pull_speed.grid(row=6, column=1, padx=15, pady=5, sticky="nw")
+
+        # Rotation Speed
+        self.rotation_speed_label = ctk.CTkLabel(
+            self.left_panel,
+            text="Rotation Speed:",
+            font=("Arial", 18),
+            text_color="white",
+            justify="left",
+        )
+        self.rotation_speed_label.grid(row=7, column=0, padx=15, pady=5, sticky="nw")
+
+        self.rotation_speed = ctk.CTkEntry(
+            self.left_panel,
+            font=("Arial", 18),
+            text_color="white",
+            justify="left",
+        )
+        self.rotation_speed.grid(row=7, column=1, padx=15, pady=5, sticky="nw")
+
         # Profile Control
         self.profileStatus_label = ctk.CTkLabel(
             self.left_panel,
@@ -115,7 +151,7 @@ class FurnacePage(ctk.CTkFrame):
             text_color="white",
             justify="left",
         )
-        self.profileStatus_label.grid(row=6, column=0, padx=15, pady=5, sticky="nw")
+        self.profileStatus_label.grid(row=8, column=0, padx=15, pady=5, sticky="nw")
 
         self.profileStatus = ctk.CTkSegmentedButton(
             self.left_panel,
@@ -123,7 +159,7 @@ class FurnacePage(ctk.CTkFrame):
             font=("Arial", 18),
             text_color="white",
         )
-        self.profileStatus.grid(row=6, column=1, padx=15, pady=5, sticky="nw")
+        self.profileStatus.grid(row=8, column=1, padx=15, pady=5, sticky="nw")
 
         # Profile Selection
         self.profile_selection_label = ctk.CTkLabel(
@@ -133,7 +169,7 @@ class FurnacePage(ctk.CTkFrame):
             text_color="white",
             justify="left",
         )
-        self.profile_selection_label.grid(row=7, column=0, padx=15, pady=5, sticky="nw")
+        self.profile_selection_label.grid(row=9, column=0, padx=15, pady=5, sticky="nw")
 
         self.profile_selection = ctk.CTkOptionMenu(
             self.left_panel,
@@ -141,7 +177,7 @@ class FurnacePage(ctk.CTkFrame):
             font=("Arial", 18),
             text_color = "white",
         )
-        self.profile_selection.grid(row=7, column=1, padx=15, pady=5, sticky="nw")
+        self.profile_selection.grid(row=9, column=1, padx=15, pady=5, sticky="nw")
 
         # Enable/Disable
         self.status = ctk.CTkButton(
@@ -150,7 +186,7 @@ class FurnacePage(ctk.CTkFrame):
             text_color="white",
             font=("Arial", 18),
         )
-        self.status.grid(row=8, column=0, padx=15, pady=15, sticky="nw")
+        self.status.grid(row=10, column=0, padx=15, pady=15, sticky="nw")
 
         # Acknowledge Alarms
         self.a_alarms = ctk.CTkButton(
@@ -159,7 +195,7 @@ class FurnacePage(ctk.CTkFrame):
             text_color = "white",
             font=("Arial", 18),
         )
-        self.a_alarms.grid(row=8, column=1, padx=15, pady=15, sticky="nw")
+        self.a_alarms.grid(row=10, column=1, padx=15, pady=15, sticky="nw")
 
         # -- RIGHT PANEL -- #
 
