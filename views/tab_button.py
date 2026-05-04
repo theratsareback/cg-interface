@@ -1,51 +1,32 @@
-from tkinter import ttk
+import customtkinter as ctk
 
-class TabButton(ttk.Frame):
-    def __init__(self, guid, parent, text, command, **kwargs):
-        super().__init__(parent, style="TabButton.TFrame", padding=(12, 8), **kwargs)
-        self.command = command
+class TabButton(ctk.CTkButton):
+    def __init__(self, parent, guid, text, command):
+        super().__init__(
+            parent,
+            text=text,
+            command=command,
+            fg_color="transparent",
+            hover_color="#3a7ebf",
+            corner_radius=5,
+            height=40,
+        )
         self.guid = guid
+        self.is_selected = False
 
-        self.label = ttk.Label(self, text=text, style="TabButton.TLabel")
-        self.label.pack()
+        self._original_command = command
+        self.configure(command=self._handle_click)
 
-        for widget in (self, self.label):
-            widget.bind("<Enter>", self._on_enter)
-            widget.bind("<Leave>", self._on_leave)
-            widget.bind("<ButtonPress-1>", self._on_press)
-            widget.bind("<ButtonRelease-1>", self._on_release)
-
-        #todo add on-tab status indicators
-
-    def _on_enter(self, event):
-        if "selected" not in self.state():
-            self.state(["active"])
-            self.label.state(["active"])
-
-    def _on_leave(self, event):
-        if "selected" not in self.state():
-            self.state(["!active", "!pressed"])
-            self.label.state(["!active", "!pressed"])
-
-    def _on_press(self, event):
-        if "selected" not in self.state():
-            self.state(["pressed"])
-            self.label.state(["pressed"])
-
-    def _on_release(self, event):
-        if "selected" not in self.state():
-            self.state(["!pressed"])
-            self.label.state(["!pressed"])
-            self.command()
+    def _handle_click(self):
+        if not self.is_selected:
+            self._original_command()
 
     def select(self):
-        self.state(["selected", "!active", "!pressed"])
-        self.label.state(["selected", "!active", "!pressed"])
+        self.is_selected = True
+        self.configure(fg_color="#2b5a8c")  # Selected color
+        self.configure(text_color="white")
 
     def deselect(self):
-        self.state(["!selected", "!active", "!pressed"])
-        self.label.state(["!selected", "!active", "!pressed"])
-
-    def gRPCupdate(self, newState):
-        pass
-        #todo implement
+        self.is_selected = False
+        self.configure(fg_color="transparent")
+        self.configure(text_color="gray")

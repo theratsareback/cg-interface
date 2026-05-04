@@ -1,42 +1,45 @@
-import tkinter as tk
+import customtkinter as ctk
 import uuid
-from tkinter import ttk
-from cg_grpc import *
 import json
-
 from .tab_button import TabButton
 from .furnace_page import FurnacePage
 
-class MainWindow(ttk.Frame):
+
+class MainWindow(ctk.CTkFrame):
     def __init__(self, parent, **kwargs):
         super().__init__(parent, **kwargs)
+
+        self.grid_rowconfigure(0, weight=1)
+        self.grid_columnconfigure(0, weight=0)
+        self.grid_columnconfigure(1, weight=1)
 
         self.tabs = {}
         self.pages = {}
         self.current = None
 
-        self.tab_bar = ttk.Frame(self)
-        self.tab_bar.pack(side="left", fill="y")
+        self.tab_bar = ctk.CTkFrame(self, fg_color="#1f1f1f", corner_radius=0)
+        self.tab_bar.grid(row=0, column=0, sticky="ns", padx=(0, 0))
 
-        self.page_container = ttk.Frame(self)
-        self.page_container.pack(side="top", fill="both", expand=True)
+        self.tab_bar.grid_propagate(False)
+        self.tab_bar.configure(width=140)
+        self.tab_bar.grid_rowconfigure(0, weight=1)
 
-        # stack all pages in the same cell
+        self.page_container = ctk.CTkFrame(self, fg_color="#1f1f1f", corner_radius=0)
+        self.page_container.grid(row=0, column=1, sticky="nsew", padx=(0, 0))
         self.page_container.grid_rowconfigure(0, weight=1)
         self.page_container.grid_columnconfigure(0, weight=1)
 
     def add_tab(self, guid, name, page_class, **page_kwargs):
-        # Create button
         tab = TabButton(
-            guid,
             self.tab_bar,
+            guid,
             text=name,
             command=lambda g=guid: self.show_tab(g)
         )
-        tab.pack(side="top", padx=(0, 2))
+        tab.pack(pady=(5, 5), padx=10, fill="x")
 
         # Create page
-        page = page_class(guid, self.page_container, style = "Page.TFrame")
+        page = page_class(guid, self.page_container)
         page.grid(row=0, column=0, sticky="nsew")
 
         self.tabs[guid] = tab
@@ -54,10 +57,10 @@ class MainWindow(ttk.Frame):
             self.tabs[self.current].deselect()
 
         self.current = guid
-        self.pages[guid].tkraise()
+        self.pages[guid].lift()
         self.tabs[guid].select()
 
-    def gRPCupdate(self, newFrame: Frame):
+    def gRPCupdate(self, newFrame):
         payload = newFrame.payload
         updateDict = json.loads(payload)
 
@@ -65,7 +68,6 @@ class MainWindow(ttk.Frame):
             if self.tabs.get(guid) is not None:
                 self.tabs[guid].gRPCupdate(updateDict[guid])
                 self.pages[guid].gRPCupdate(updateDict[guid])
-
             else:
                 self.add_tab(guid, updateDict[guid]["furnaceLabel"], FurnacePage)
                 self.tabs[guid].gRPCupdate(updateDict[guid])
