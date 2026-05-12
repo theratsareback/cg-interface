@@ -12,8 +12,9 @@ from PIL import Image, ImageTk, ImageDraw
 
 
 class VideoStream(ctk.CTkFrame):
-    def __init__(self, parent, rtsp_url, width, height):
-        super().__init__(parent, fg_color="black")
+    def __init__(self, parent, rtsp_url, width=640, height=480):
+        super().__init__(parent, fg_color="black", width=width, height=height)
+        self.pack_propagate(False)
         self.rtsp_url = rtsp_url
         self.size = (width, height)
         self.current_frame = None
@@ -26,8 +27,15 @@ class VideoStream(ctk.CTkFrame):
         self.image_label = ctk.CTkLabel(self, image=self.ctk_image, text="")
         self.image_label.pack(fill="both", expand=True)
 
+        self.bind("<Configure>", self._on_resize)
+
         threading.Thread(target=self._stream_loop, daemon=True).start()
         self.update_ui()
+
+    def _on_resize(self, event):
+        new_width = max(10, event.width - 2)
+        new_height = max(10, event.height - 2)
+        self.size = (new_width, new_height)
 
     def stop(self):
         self.running = False
@@ -69,10 +77,12 @@ class VideoStream(ctk.CTkFrame):
     def update_ui(self):
         if self.current_frame is not None:
             cv2image = cv2.cvtColor(self.current_frame, cv2.COLOR_BGR2RGB)
-            img = Image.fromarray(cv2image).resize(self.size)
-            ctk_img = ctk.CTkImage(light_image=img, dark_image=img, size=self.size)
-            self.image_label.configure(image=ctk_img)
+            img = Image.fromarray(cv2image)
+
+            self.ctk_image = ctk.CTkImage(light_image=img, dark_image=img, size=self.size)
+            self.image_label.configure(image=self.ctk_image)
         else:
+            self.ctk_image.configure(size=self.size)
             self.image_label.configure(image=self.ctk_image)
 
         if self.running:

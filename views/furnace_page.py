@@ -209,10 +209,8 @@ class FurnacePage(ctk.CTkFrame):
         self.camera_view = VideoStream(
             self.right_panel,
             rtsp_url="rtsp://192.168.168.202:8554/cam",
-            width=640,
-            height=480,
         )
-        self.camera_view.pack(side="top", fill="x", pady=(0, 10))
+        self.camera_view.pack(side="top", fill="both", expand=True, pady=(0, 10))
 
         self.fig = Figure(figsize=(5, 4), dpi=100)
         self.ax = self.fig.add_subplot(111)
