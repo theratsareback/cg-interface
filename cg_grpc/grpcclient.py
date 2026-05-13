@@ -24,7 +24,15 @@ class EventType(IntEnum):
     RequestProfiles = 6
     RequestFurnaces = 7
     SetFurnaceProfile = 8
-    AckFurnaceAlarm = 9
+    SetProfileStatus= 9
+    AckFurnaceAlarm = 10
+    SetSteppers = 11
+    Enable = 12
+    SetSetpoint = 13
+    StartDiameterControl = 14
+    SetManTrim = 15
+    SetGains = 16
+    SeekTime = 17
 
 
 class FurnaceGrpcClient:

@@ -1,6 +1,8 @@
 import customtkinter as ctk
 import uuid
 import json
+
+from cg_grpc import EventThrower
 from .tab_button import TabButton
 from .furnace_page import FurnacePage
 

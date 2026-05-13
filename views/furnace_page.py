@@ -1,13 +1,37 @@
 import customtkinter as ctk
 import tkinter as tk
+
+import cg_grpc
 from rtsp_camera_service import VideoStream
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.figure import Figure
+from cg_grpc import EventThrower, grpcclient
+#from cg_grpc.client_singleton import get_client
+from enum import Enum
+
 
 class FurnacePage(ctk.CTkFrame):
+    def on_setpoint_enter(self, event):
+        value = float(self.setpoint.get())
+        self.bus.set_setpoint(self.guid, value)
+
+    def on_manual_trim_enter(self, event):
+        value = float(self.manual_trim.get())
+        self.bus.set_man_trim(self.guid, value)
+
+    def on_pull_speed_enter(self, event):
+        value = float(self.pull_speed.get())
+        self.bus.set_steppers(value)
+
+    def on_rotation_speed_enter(self, event):
+        value = float(self.rotation_speed.get())
+        self.bus.set_steppers(value)
+
     def __init__(self, guid, parent, **kwargs):
         super().__init__(parent, **kwargs)
         self.guid = guid
+        self.client = self.winfo_toplevel().gRPCClient
+        self.bus = EventThrower.FurnaceEventBus(self.client)
 
         self.paned = tk.PanedWindow(
             self,
@@ -19,7 +43,6 @@ class FurnacePage(ctk.CTkFrame):
             opaqueresize=True,
         )
         self.paned.pack(fill="both", expand=True)
-
         self.left_panel = ctk.CTkFrame(
             self.paned,
             fg_color="#2b2b2b",
@@ -45,7 +68,7 @@ class FurnacePage(ctk.CTkFrame):
 
         self.process_value = ctk.CTkLabel(
             self.left_panel,
-            text="N/A",
+            text= "N/A",
             font=("Arial", 18),
             text_color="white",
             justify="left",
@@ -69,6 +92,8 @@ class FurnacePage(ctk.CTkFrame):
             justify="left",
         )
         self.setpoint.grid(row=3, column=1, padx=15, pady=5, sticky="nw")
+        """Send a New Setpoint to the Furnace"""
+        self.setpoint.bind("<Return>", self.on_setpoint_enter)
 
         # Manual trim
         self.manual_trim_label = ctk.CTkLabel(
@@ -87,6 +112,8 @@ class FurnacePage(ctk.CTkFrame):
             justify="left",
         )
         self.manual_trim.grid(row=4, column=1, padx=15, pady=5, sticky="nw")
+        """Send a new Manual Trim to the Furnace"""
+        self.manual_trim.bind("<Return>", self.on_manual_trim_enter)
 
         # Diameter control trim
         self.dc_trim_label = ctk.CTkLabel(
@@ -124,6 +151,8 @@ class FurnacePage(ctk.CTkFrame):
             justify="left",
         )
         self.pull_speed.grid(row=6, column=1, padx=15, pady=5, sticky="nw")
+        """Set a new Pull Speed for the Furnace"""
+        self.pull_speed.bind("<Return>", self.on_pull_speed_enter)
 
         # Rotation Speed
         self.rotation_speed_label = ctk.CTkLabel(
@@ -142,6 +171,8 @@ class FurnacePage(ctk.CTkFrame):
             justify="left",
         )
         self.rotation_speed.grid(row=7, column=1, padx=15, pady=5, sticky="nw")
+        """Set a new Rotation Speed for the Furnace"""
+        self.rotation_speed.bind("<Return>", self.on_rotation_speed_enter)
 
         # Profile Control
         self.profileStatus_label = ctk.CTkLabel(
@@ -237,5 +268,6 @@ class FurnacePage(ctk.CTkFrame):
         self.canvas.draw()
 
     def gRPCupdate(self, newState):
-        self.label.configure(text=f"Process Value: {newState["processValue"]}")
+        self.process_value.configure(text=f"{round(newState["processValue"],2 )}")
+        self.dc_trim.configure(text=f"{round(newState["diameterTrim"],2 )}")
         #todo implement state storage in new furnace container class
