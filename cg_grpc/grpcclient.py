@@ -32,7 +32,9 @@ class EventType(IntEnum):
     StartDiameterControl = 14
     SetManTrim = 15
     SetGains = 16
-    SeekTime = 17
+    SetSpotTarget = 17
+    SeekTime = 18
+    ResetDiameterControl = 19
 
 
 class FurnaceGrpcClient:

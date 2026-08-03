@@ -27,8 +27,39 @@ class FurnacePage(ctk.CTkFrame):
         value = float(self.rotation_speed.get())
         self.bus.set_steppers(value)
 
-    def __init__(self, guid, parent, **kwargs):
+    def select_profile(self, label):
+        for profile in self.profiles:
+            if profile['Label'] == label:
+                self.bus.set_furnace_profile(self.guid, profile)
+                return
+
+    def set_profile_state(self, state):
+        if state == "Pause": # change language to cast to enum on C# backend
+            state = "Paused"
+        elif state == "Resume":
+            state = "Running"
+        elif state == "Stop":
+            state = "Stopped"
+        self.bus.set_profile_status(self.guid, state)
+
+    def enable_furnace(self):
+        self.bus.enable(self.guid)
+
+    def enable_diameter_control(self):
+        self.bus.start_diameter_control(self.guid)
+
+    def reset_diameter_control(self):
+        self.bus.reset_diameter_control(self.guid)
+
+    def set_target(self, *kwargs):
+        self.bus.set_target(self.guid, [self.y_entry.get(), self.x_entry.get()]) #this looks backwards but isn't
+
+    def set_gains(self, *kwargs):
+        self.bus.set_gains(self.guid, self.kp_entry.get(), self.ki_entry.get())
+
+    def __init__(self, guid, parent, profiles, **kwargs):
         super().__init__(parent, **kwargs)
+        self.profiles = profiles
         self.guid = guid
         self.client = self.winfo_toplevel().gRPCClient
         self.bus = EventThrower.FurnaceEventBus(self.client)
@@ -85,15 +116,14 @@ class FurnacePage(ctk.CTkFrame):
         )
         self.setpoint_label.grid(row=3, column=0, padx=15, pady=5, sticky="nw")
 
-        self.setpoint = ctk.CTkEntry(
+        self.setpoint = ctk.CTkLabel(
             self.left_panel,
+            text="N/A",
             font=("Arial", 18),
             text_color="white",
             justify="left",
         )
         self.setpoint.grid(row=3, column=1, padx=15, pady=5, sticky="nw")
-        """Send a New Setpoint to the Furnace"""
-        self.setpoint.bind("<Return>", self.on_setpoint_enter)
 
         # Manual trim
         self.manual_trim_label = ctk.CTkLabel(
@@ -112,7 +142,7 @@ class FurnacePage(ctk.CTkFrame):
             justify="left",
         )
         self.manual_trim.grid(row=4, column=1, padx=15, pady=5, sticky="nw")
-        """Send a new Manual Trim to the Furnace"""
+        self.manual_trim.insert(0, 0)
         self.manual_trim.bind("<Return>", self.on_manual_trim_enter)
 
         # Diameter control trim
@@ -152,7 +182,7 @@ class FurnacePage(ctk.CTkFrame):
         )
         self.pull_speed.grid(row=6, column=1, padx=15, pady=5, sticky="nw")
         """Set a new Pull Speed for the Furnace"""
-        self.pull_speed.bind("<Return>", self.on_pull_speed_enter)
+        #self.pull_speed.bind("<Return>", self.on_pull_speed_enter)
 
         # Rotation Speed
         self.rotation_speed_label = ctk.CTkLabel(
@@ -172,7 +202,7 @@ class FurnacePage(ctk.CTkFrame):
         )
         self.rotation_speed.grid(row=7, column=1, padx=15, pady=5, sticky="nw")
         """Set a new Rotation Speed for the Furnace"""
-        self.rotation_speed.bind("<Return>", self.on_rotation_speed_enter)
+        #self.rotation_speed.bind("<Return>", self.on_rotation_speed_enter)
 
         # Profile Control
         self.profileStatus_label = ctk.CTkLabel(
@@ -189,6 +219,7 @@ class FurnacePage(ctk.CTkFrame):
             values=["Pause", "Resume", "Stop"],
             font=("Arial", 18),
             text_color="white",
+            command=self.set_profile_state,
         )
         self.profileStatus.grid(row=8, column=1, padx=15, pady=5, sticky="nw")
 
@@ -204,10 +235,12 @@ class FurnacePage(ctk.CTkFrame):
 
         self.profile_selection = ctk.CTkOptionMenu(
             self.left_panel,
-            values=["Test Profile 1", "Test Profile 2"],
+            values=[x['Label'] for x in self.profiles],
             font=("Arial", 18),
             text_color = "white",
+            command=self.select_profile,
         )
+        self.select_profile(self.profile_selection._values[0]) # actually select default
         self.profile_selection.grid(row=9, column=1, padx=15, pady=5, sticky="nw")
 
         # Enable/Disable
@@ -216,6 +249,7 @@ class FurnacePage(ctk.CTkFrame):
             text="Toggle Furnace",
             text_color="white",
             font=("Arial", 18),
+            command=self.enable_furnace
         )
         self.status.grid(row=10, column=0, padx=15, pady=15, sticky="nw")
 
@@ -228,6 +262,103 @@ class FurnacePage(ctk.CTkFrame):
         )
         self.a_alarms.grid(row=10, column=1, padx=15, pady=15, sticky="nw")
 
+        # diameter control
+        self.dcEnable = ctk.CTkButton(
+            self.left_panel,
+            text="Start Diameter Control",
+            text_color="white",
+            font=("Arial", 18),
+            command=self.enable_diameter_control
+        )
+        self.dcEnable.grid(row=11, column=0, padx=15, pady=15, sticky="nw")
+
+        self.dcReset = ctk.CTkButton(
+            self.left_panel,
+            text="Reset Diameter Control",
+            text_color="white",
+            font=("Arial", 18),
+            command=self.reset_diameter_control
+        )
+        self.dcReset.grid(row=11, column=1, padx=15, pady=15, sticky="nw")
+
+        # target control
+        self.x_entry_label = ctk.CTkLabel(
+            self.left_panel,
+            text="Target X position:",
+            font=("Arial", 18),
+            text_color="white",
+            justify="left",
+        )
+        self.x_entry_label.grid(row=12, column=0, padx=15, pady=5, sticky="nw")
+
+        self.x_entry = ctk.CTkEntry(
+            self.left_panel,
+            font=("Arial", 18),
+            text_color="white",
+            justify="left",
+        )
+        self.x_entry.grid(row=13, column=1, padx=15, pady=5, sticky="nw")
+        self.x_entry.insert(0, 0)
+        self.x_entry.bind("<Return>", self.set_target)
+
+        self.y_entry_label = ctk.CTkLabel(
+            self.left_panel,
+            text="Target Y position:",
+            font=("Arial", 18),
+            text_color="white",
+            justify="left",
+        )
+        self.y_entry_label.grid(row=13, column=0, padx=15, pady=5, sticky="nw")
+
+        self.y_entry = ctk.CTkEntry(
+            self.left_panel,
+            font=("Arial", 18),
+            text_color="white",
+            justify="left",
+        )
+        self.y_entry.grid(row=12, column=1, padx=15, pady=5, sticky="nw")
+        self.y_entry.insert(0, 0)
+        self.y_entry.bind("<Return>", self.set_target)
+
+        # gain control
+        self.kp_entry_label = ctk.CTkLabel(
+            self.left_panel,
+            text="kp:",
+            font=("Arial", 18),
+            text_color="white",
+            justify="left",
+        )
+        self.kp_entry_label.grid(row=14, column=0, padx=15, pady=5, sticky="nw")
+
+        self.kp_entry = ctk.CTkEntry(
+            self.left_panel,
+            font=("Arial", 18),
+            text_color="white",
+            justify="left",
+        )
+        self.kp_entry.grid(row=14, column=1, padx=15, pady=5, sticky="nw")
+        self.kp_entry.insert(0, 0)
+        self.kp_entry.bind("<Return>", self.set_gains)
+
+        self.ki_entry_label = ctk.CTkLabel(
+            self.left_panel,
+            text="ki:",
+            font=("Arial", 18),
+            text_color="white",
+            justify="left",
+        )
+        self.ki_entry_label.grid(row=15, column=0, padx=15, pady=5, sticky="nw")
+
+        self.ki_entry = ctk.CTkEntry(
+            self.left_panel,
+            font=("Arial", 18),
+            text_color="white",
+            justify="left",
+        )
+        self.ki_entry.grid(row=15, column=1, padx=15, pady=5, sticky="nw")
+        self.ki_entry.insert(0, 0)
+        self.ki_entry.bind("<Return>", self.set_gains)
+
         # -- RIGHT PANEL -- #
 
         self.right_panel = ctk.CTkFrame(
@@ -239,7 +370,7 @@ class FurnacePage(ctk.CTkFrame):
 
         self.camera_view = VideoStream(
             self.right_panel,
-            rtsp_url="rtsp://192.168.168.202:8554/cam",
+            rtsp_url="rtsp://192.168.168.103:8554/cam",
         )
         self.camera_view.pack(side="top", fill="both", expand=True, pady=(0, 10))
 
@@ -270,4 +401,5 @@ class FurnacePage(ctk.CTkFrame):
     def gRPCupdate(self, newState):
         self.process_value.configure(text=f"{round(newState["processValue"],2 )}")
         self.dc_trim.configure(text=f"{round(newState["diameterTrim"],2 )}")
+        self.setpoint.configure(text=f"{round(newState["setpoint"],2 )}")
         #todo implement state storage in new furnace container class

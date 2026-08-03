@@ -49,6 +49,8 @@ class App(ctk.CTk):
 
         self.gRPCClient = make_client(self._apply_frame)
 
+        self.main.get_profiles()
+
 
         self.protocol("WM_DELETE_WINDOW", self.on_close)
 

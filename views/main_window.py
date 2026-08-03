@@ -16,6 +16,7 @@ class MainWindow(ctk.CTkFrame):
         self.grid_columnconfigure(1, weight=1)
 
         self.tabs = {}
+        self.profiles = None
         self.pages = {}
         self.current = None
 
@@ -31,7 +32,13 @@ class MainWindow(ctk.CTkFrame):
         self.page_container.grid_rowconfigure(0, weight=1)
         self.page_container.grid_columnconfigure(0, weight=1)
 
-    def add_tab(self, guid, name, page_class, **page_kwargs):
+    def get_profiles(self):
+        client = self.winfo_toplevel().gRPCClient
+        bus = EventThrower.FurnaceEventBus(client)
+        self.profiles = json.loads(bus.request_profiles().payload)
+
+
+    def add_tab(self, guid, name, **page_kwargs):
         tab = TabButton(
             self.tab_bar,
             guid,
@@ -40,7 +47,7 @@ class MainWindow(ctk.CTkFrame):
         )
         tab.pack(pady=(2, 2), padx=10, fill="x")
 
-        page = page_class(guid, self.page_container)
+        page = FurnacePage(guid, self.page_container, self.profiles)
         page.grid(row=0, column=0, sticky="nsew")
 
         self.tabs[guid] = tab
@@ -72,10 +79,10 @@ class MainWindow(ctk.CTkFrame):
                 self.tabs[guid].gRPCupdate(updateDict[guid])
                 self.pages[guid].gRPCupdate(updateDict[guid])
             else:
-                self.add_tab(guid, updateDict[guid]["furnaceLabel"], FurnacePage)
+                self.add_tab(guid, updateDict[guid]["furnaceLabel"])
                 self.tabs[guid].gRPCupdate(updateDict[guid])
                 self.pages[guid].gRPCupdate(updateDict[guid])
 
     def add_test_tab(self, label):
         guid = uuid.uuid4()
-        self.add_tab(guid, label, FurnacePage)
+        self.add_tab(guid, label)
